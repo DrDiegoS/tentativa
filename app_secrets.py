@@ -113,7 +113,7 @@ with tabas[2]:
 
         st.markdown(f"### 🗓️ Quarter {quarter[-1] if quarter != 'Sem Quarter' else 'Desconhecido'}")
 
-        num_por_linha = 3
+        num_por_linha = 4
         for i in range(0, len(linhas_quarter), num_por_linha):
             cols = st.columns(num_por_linha)
             for j, linha in enumerate(linhas_quarter[i:i+num_por_linha]):
@@ -123,40 +123,34 @@ with tabas[2]:
                 status_dominante = df_linha["Status"].mode()[0]
                 cor = status_cores.get(status_dominante, "⚪")
 
+                fig = px.pie(df_linha, names="Status", hole=0.4)
+                fig.update_layout(
+                    margin=dict(l=0, r=0, t=0, b=0),
+                    height=160,
+                    showlegend=False
+                )
+
                 with cols[j]:
                     st.markdown(f"""
                         <div style='
                             background-color: #fff;
                             border: 1px solid #ddd;
                             border-radius: 12px;
-                            padding: 16px;
-                            height: 240px;
+                            padding: 12px;
                             box-shadow: 1px 2px 5px rgba(0,0,0,0.05);
                             display: flex;
                             flex-direction: column;
-                            justify-content: space-between;
+                            align-items: center;
+                            height: 300px;
+                            overflow: hidden;
                         '>
-                            <div>
-                                <h4 style='margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'>
-                                    {cor} <span style="font-size: 18px;">{linha}</span>
-                                </h4>
-                                <ul style='padding-left: 20px; margin: 0; font-size: 15px;'>
-                                    <li><strong>Total:</strong> {total} tarefas</li>
-                                    <li><strong>Concluídas:</strong> {concluidas}</li>
-                                    <li><strong>Status dominante:</strong> <span style="font-family: monospace;">{status_dominante}</span></li>
-                                </ul>
-                            </div>
-                        </div>
+                            <h5 style='margin-bottom: 4px; text-align: center;'>{cor} {linha}</h5>
+                            <p style='font-size: 13px; text-align: center; margin: 4px 0;'>Total: {total} | ✅ {concluidas}</p>
                     """, unsafe_allow_html=True)
 
-                    with st.expander(f"📂 Ver tarefas de {linha}"):
-                        colunas_exibir = ["Tarefa", "Status"]
-                        st.dataframe(df_linha[colunas_exibir], use_container_width=True)
+                    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False}, key=f"pie_{linha.replace(' ', '_')}_{quarter}")
 
-                        # Gráfico de pizza por status da linha (opcional)
-                        if len(df_linha["Status"].unique()) > 1:
-                            fig = px.pie(df_linha, names="Status", title=f"Distribuição de Status – {linha}")
-                            st.plotly_chart(fig, use_container_width=True, key=f"grafico_{linha.replace(' ', '_')}")
+                    st.markdown("</div>", unsafe_allow_html=True)
 # === ABA 4: INSIGHTS ===
 with tabas[3]:
     st.subheader("💬 Insights Inteligentes")
