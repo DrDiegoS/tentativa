@@ -9,13 +9,12 @@ from datetime import datetime
 st.set_page_config(layout="wide")
 st.title("📊 Dashboard de Acompanhamento de Programas")
 
-# === CONEXÃO COM GOOGLE SHEETS via SECRETS ===
+# === CONEXÃO COM GOOGLE SHEETS ===
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 service_account_info = st.secrets["google_service_account"]
 creds = Credentials.from_service_account_info(service_account_info, scopes=SCOPES)
 client = gspread.authorize(creds)
 
-# ID e Nome da Planilha
 SHEET_ID = "1dQDcSnroIs2iefAsgcDA11jNbVqDUP6w0HFOY-yzBYc"
 SHEET_NAME = "bd"
 sheet = client.open_by_key(SHEET_ID).worksheet(SHEET_NAME)
@@ -31,24 +30,15 @@ nova_linha = st.sidebar.text_input("Nome da nova linha")
 
 if st.sidebar.button("Adicionar Nova Linha"):
     try:
-        # Detecta modelo: fases e tarefas existentes
         modelo = df[['Fase', 'Tarefa']].drop_duplicates().reset_index(drop=True)
-
-        # Cria nova estrutura
         nova_estrutura = modelo.copy()
         nova_estrutura['Linha'] = nova_linha
         nova_estrutura['Status'] = "Não iniciado"
-        nova_estrutura['Observações'] = ""  # Corrigir de 'Observação' para 'Observações'
+        nova_estrutura['Observações'] = ""
         nova_estrutura['Prazo'] = ""
-
-        # Reorganiza colunas conforme o df original
-        colunas_ordenadas = df.columns.tolist()
-        nova_estrutura = nova_estrutura[colunas_ordenadas]
-
-        # Concatena e atualiza na planilha
+        nova_estrutura = nova_estrutura[df.columns.tolist()]
         df = pd.concat([df, nova_estrutura], ignore_index=True)
-        sheet.update([df.columns.values.tolist()] + df.values.tolist())
-
+        sheet.update([df.columns.tolist()] + df.values.tolist())
         st.success(f"Linha de cuidado '{nova_linha}' adicionada com sucesso!")
     except Exception as e:
         st.error(f"Erro ao adicionar linha: {e}")
@@ -92,15 +82,31 @@ col1.metric("Total de Tarefas", len(df_filtrado))
 col2.metric("Concluídas", df_filtrado["Status"].value_counts().get("Concluído", 0))
 col3.metric("Em Andamento", df_filtrado["Status"].value_counts().get("Em andamento", 0))
 
-# === TABELA DE TAREFAS ===
+# === CONFIGURAÇÃO DAS COLUNAS EDITÁVEIS ===
+status_opcoes = ["Não iniciado", "Em andamento", "Concluído", "Ação Contínua"]
+config_colunas = {
+    "Status": st.column_config.SelectboxColumn(
+        "Status",
+        help="Selecione o status da tarefa",
+        options=status_opcoes,
+        required=True
+    )
+}
+
+# === TABELA DE TAREFAS COM DROPDOWN ===
 st.subheader("📋 Tarefas Filtradas")
-edited_df = st.data_editor(df_filtrado, use_container_width=True, num_rows="dynamic")
+edited_df = st.data_editor(
+    df_filtrado,
+    use_container_width=True,
+    num_rows="dynamic",
+    column_config=config_colunas
+)
 
 # === BOTÃO DE SALVAR ===
 if st.button("💾 Salvar Alterações"):
     try:
-        df.loc[edited_df.index, :] = edited_df  # atualização segura
-        sheet.update([df.columns.values.tolist()] + df.values.tolist())
+        df.loc[edited_df.index, :] = edited_df
+        sheet.update([df.columns.tolist()] + df.values.tolist())
         st.success("Alterações salvas com sucesso!")
     except Exception as e:
         st.error(f"Erro ao salvar: {e}")
