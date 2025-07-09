@@ -38,7 +38,7 @@ if st.sidebar.button("Adicionar Nova Linha"):
         nova_estrutura = modelo.copy()
         nova_estrutura['Linha'] = nova_linha
         nova_estrutura['Status'] = "Não iniciado"
-        nova_estrutura['Observação'] = ""
+        nova_estrutura['Observações'] = ""  # Corrigir de 'Observação' para 'Observações'
         nova_estrutura['Prazo'] = ""
 
         # Reorganiza colunas conforme o df original
@@ -46,8 +46,8 @@ if st.sidebar.button("Adicionar Nova Linha"):
         nova_estrutura = nova_estrutura[colunas_ordenadas]
 
         # Concatena e atualiza na planilha
-        df_atualizado = pd.concat([df, nova_estrutura], ignore_index=True)
-        sheet.update([df_atualizado.columns.values.tolist()] + df_atualizado.values.tolist())
+        df = pd.concat([df, nova_estrutura], ignore_index=True)
+        sheet.update([df.columns.values.tolist()] + df.values.tolist())
 
         st.success(f"Linha de cuidado '{nova_linha}' adicionada com sucesso!")
     except Exception as e:
