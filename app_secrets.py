@@ -94,7 +94,7 @@ with tabas[1]:
         except Exception as e:
             st.error(f"Erro ao salvar: {e}")
 
-# === ABA 3: POR LINHA ===
+# === ABA 3: POR LINHA COM CARDS E MODAL ===
 with tabas[2]:
     st.subheader("📘 Visualização por Linha de Cuidado")
 
@@ -117,47 +117,40 @@ with tabas[2]:
             cor = status_cores.get(status_dominante, "⚪")
 
             with cols[j]:
-                st.markdown(f"""
-                    <div style='
-                        background-color: #fff;
-                        border: 1px solid #ddd;
-                        border-radius: 12px;
-                        padding: 16px;
-                        height: 240px;
-                        box-shadow: 1px 2px 5px rgba(0,0,0,0.05);
-                        display: flex;
-                        flex-direction: column;
-                        justify-content: space-between;
-                    '>
-                        <div>
-                            <h4 style='margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'>
-                                {cor} <span style="font-size: 18px;">{linha}</span>
-                            </h4>
-                            <ul style='padding-left: 20px; margin: 0; font-size: 15px;'>
-                                <li><strong>Total:</strong> {total} tarefas</li>
-                                <li><strong>Concluídas:</strong> {concluidas}</li>
-                                <li><strong>Status dominante:</strong> <span style="font-family: monospace;">{status_dominante}</span></li>
-                            </ul>
-                        </div>
-                        <a href="#ver_{linha.replace(' ', '_')}" style='
-                            text-align: center;
-                            padding: 6px;
-                            margin-top: 12px;
-                            background-color: #f7f7f7;
-                            border-radius: 6px;
-                            text-decoration: none;
-                            font-weight: 500;
-                            border: 1px solid #ccc;
-                            display: block;
-                            font-size: 14px;
-                        '>Ver tarefas da linha</a>
-                    </div>
-                """, unsafe_allow_html=True)
+                with st.container():
+                    st.markdown(f"""
+                        <div style='
+                            background-color: #fff;
+                            border: 1px solid #ddd;
+                            border-radius: 12px;
+                            padding: 16px;
+                            height: 240px;
+                            box-shadow: 1px 2px 5px rgba(0,0,0,0.05);
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: space-between;
+                        '>
+                            <div>
+                                <h4 style='margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'>
+                                    {cor} <span style="font-size: 18px;">{linha}</span>
+                                </h4>
+                                <ul style='padding-left: 20px; margin: 0; font-size: 15px;'>
+                                    <li><strong>Total:</strong> {total} tarefas</li>
+                                    <li><strong>Concluídas:</strong> {concluidas}</li>
+                                    <li><strong>Status dominante:</strong> <span style="font-family: monospace;">{status_dominante}</span></li>
+                                </ul>
+                            </div>
+                        """, unsafe_allow_html=True)
 
-    # Âncoras abaixo com dataframes detalhados
-    for linha in linhas:
-        st.markdown(f"<hr><h4 id='ver_{linha.replace(' ', '_')}'>📄 Tarefas da linha '{linha}'</h4>", unsafe_allow_html=True)
-        st.dataframe(df[df["Linha"] == linha])
+                    if st.button(f"Ver detalhes - {linha}"):
+                        with st.modal(f"📄 Tarefas da linha: {linha}", key=f"modal_{linha}"):
+                            st.markdown(f"### 📋 {linha}")
+                            st.markdown(f"- Total de tarefas: **{total}**")
+                            st.markdown(f"- Concluídas: **{concluidas}**")
+                            st.dataframe(df_linha.reset_index(drop=True))
+                            st.button("Fechar", key=f"close_{linha}")
+                    
+                    st.markdown("</div>", unsafe_allow_html=True)
 
 # === ABA 4: INSIGHTS ===
 with tabas[3]:
