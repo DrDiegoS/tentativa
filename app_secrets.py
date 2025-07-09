@@ -82,23 +82,6 @@ col1.metric("Total de Tarefas", len(df_filtrado))
 col2.metric("Concluídas", df_filtrado["Status"].value_counts().get("Concluído", 0))
 col3.metric("Em Andamento", df_filtrado["Status"].value_counts().get("Em andamento", 0))
 
-# === ABAS POR LINHA DE CUIDADO ===
-st.subheader("🗂️ Visualização por Linha de Cuidado")
-linhas_unicas = df_filtrado["Linha"].unique()
-abas = st.tabs(list(linhas_unicas))
-for i, linha in enumerate(linhas_unicas):
-    with abas[i]:
-        st.markdown(f"### Linha: {linha}")
-        st.dataframe(df_filtrado[df_filtrado["Linha"] == linha])
-
-# === TABELA DE TAREFAS COM DROPDOWN ===
-st.subheader("📋 Tarefas Filtradas")
-edited_df = st.data_editor(
-    df_filtrado,
-    use_container_width=True,
-    num_rows="dynamic",
-    column_config=config_colunas
-)
 # === CONFIGURAÇÃO DAS COLUNAS EDITÁVEIS ===
 status_opcoes = ["Não iniciado", "Em andamento", "Concluído", "Ação Contínua"]
 config_colunas = {
@@ -127,6 +110,17 @@ if st.button("💾 Salvar Alterações"):
         st.success("Alterações salvas com sucesso!")
     except Exception as e:
         st.error(f"Erro ao salvar: {e}")
+
+# === ABAS POR LINHA DE CUIDADO ===
+st.markdown("---")
+st.subheader("🗂️ Visualização por Linha")
+
+linhas_unicas = df["Linha"].unique()
+abas = st.tabs(list(linhas_unicas))
+for i, linha in enumerate(linhas_unicas):
+    with abas[i]:
+        st.markdown(f"### Linha: {linha}")
+        st.dataframe(df[df["Linha"] == linha])
 
 # === RODAPÉ ===
 st.markdown("---")
