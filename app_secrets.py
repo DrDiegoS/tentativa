@@ -94,18 +94,9 @@ with tabas[1]:
         except Exception as e:
             st.error(f"Erro ao salvar: {e}")
 
-# === ABA 3: POR LINHA (Organizado por Quarter com gráfico e cores) ===
+# === ABA 3: POR LINHA ===
 with tabas[2]:
     st.subheader("📘 Visualização por Linha de Cuidado")
-
-    quarters_ordenados = ["Q1", "Q2", "Q3", "Q4", "Sem Quarter"]
-    nomes_quarters = {
-        "Q1": "🔷 Quarter 1",
-        "Q2": "🟢 Quarter 2",
-        "Q3": "🟠 Quarter 3",
-        "Q4": "🟣 Quarter 4",
-        "Sem Quarter": "⚪ Sem Quarter"
-    }
 
     status_cores = {
         "Concluído": "🟢",
@@ -114,21 +105,19 @@ with tabas[2]:
         "Ação Contínua": "🔵"
     }
 
-    for q in quarters_ordenados:
-        df_q = df[df["Quarter"] == q]
-        if df_q.empty:
+    quarters_ordenados = ["Q1", "Q2", "Q3", "Q4", "Sem Quarter"]
+    for quarter in quarters_ordenados:
+        linhas_quarter = sorted(df[df["Quarter"] == quarter]["Linha"].unique())
+        if not linhas_quarter:
             continue
 
-        st.markdown(f"## {nomes_quarters[q]}")
-        linhas = sorted(df_q["Linha"].unique(), key=lambda l: 
-                        (df_q[df_q["Linha"] == l]["Status"].value_counts(normalize=True).get("Concluído", 0)), 
-                        reverse=True)
+        st.markdown(f"### 🗓️ Quarter {quarter[-1] if quarter != 'Sem Quarter' else 'Desconhecido'}")
 
-        num_por_linha = 4
-        for i in range(0, len(linhas), num_por_linha):
+        num_por_linha = 3
+        for i in range(0, len(linhas_quarter), num_por_linha):
             cols = st.columns(num_por_linha)
-            for j, linha in enumerate(linhas[i:i+num_por_linha]):
-                df_linha = df_q[df_q["Linha"] == linha]
+            for j, linha in enumerate(linhas_quarter[i:i+num_por_linha]):
+                df_linha = df[df["Linha"] == linha]
                 total = len(df_linha)
                 concluidas = len(df_linha[df_linha["Status"] == "Concluído"])
                 status_dominante = df_linha["Status"].mode()[0]
@@ -160,23 +149,14 @@ with tabas[2]:
                         </div>
                     """, unsafe_allow_html=True)
 
-                    with st.expander(f"📂 Ver tarefas da linha '{linha}'"):
+                    with st.expander(f"📂 Ver tarefas de {linha}"):
                         colunas_exibir = ["Tarefa", "Status"]
                         st.dataframe(df_linha[colunas_exibir], use_container_width=True)
 
-                        # Gráfico de barras por status dentro da linha
-                        grafico = df_linha["Status"].value_counts().reset_index()
-                        grafico.columns = ["Status", "Quantidade"]
-                        fig = px.bar(grafico, x="Status", y="Quantidade", color="Status", 
-                                     color_discrete_map={
-                                         "Concluído": "green",
-                                         "Em andamento": "gold",
-                                         "Não iniciado": "red",
-                                         "Ação Contínua": "blue"
-                                     },
-                                     title="Distribuição de Tarefas por Status")
-                        st.plotly_chart(fig, use_container_width=True)
-
+                        # Gráfico de pizza por status da linha (opcional)
+                        if len(df_linha["Status"].unique()) > 1:
+                            fig = px.pie(df_linha, names="Status", title=f"Distribuição de Status – {linha}")
+                            st.plotly_chart(fig, use_container_width=True, key=f"grafico_{linha.replace(' ', '_')}")
 # === ABA 4: INSIGHTS ===
 with tabas[3]:
     st.subheader("💬 Insights Inteligentes")
