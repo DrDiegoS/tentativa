@@ -106,7 +106,7 @@ with tabas[2]:
         "Ação Contínua": "🔵"
     }
 
-    num_por_linha = 4
+    num_por_linha = 3
     for i in range(0, len(linhas), num_por_linha):
         cols = st.columns(num_por_linha)
         for j, linha in enumerate(linhas[i:i+num_por_linha]):
@@ -143,7 +143,8 @@ with tabas[2]:
                 """, unsafe_allow_html=True)
 
                 with st.expander(f"📂 Ver detalhes de {linha}"):
-                    st.dataframe(df_linha.reset_index(drop=True))
+                    colunas_exibir = ["Tarefa", "Status"]
+                    st.dataframe(df[df["Linha"] == linha][colunas_exibir], use_container_width=True)
 
 # === ABA 4: INSIGHTS ===
 with tabas[3]:
