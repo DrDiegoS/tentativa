@@ -121,7 +121,7 @@ with tabas[2]:
 
         st.markdown(f"### 🔶 {nomes_quarters[q]}")
         linhas = sorted(df_q["Linha"].unique())
-        num_por_linha = 4
+        num_por_linha = 3
 
         for i in range(0, len(linhas), num_por_linha):
             cols = st.columns(num_por_linha)
