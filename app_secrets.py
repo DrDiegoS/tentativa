@@ -96,43 +96,66 @@ with tabas[1]:
 
 # === ABA 3: POR LINHA ===
 with tabas[2]:
-    st.subheader("📘 Visualização por Linha")
+    st.subheader("📘 Visualização por Linha de Cuidado")
 
-    # Função para obter emoji do status dominante
-    def emoji_status(status):
-        if status == "Concluído":
-            return "🟢"
-        elif status == "Em andamento":
-            return "🟡"
-        elif status == "Não iniciado":
-            return "🔴"
-        elif status == "Ação Contínua":
-            return "🔵"
-        else:
-            return "⚪"
+    linhas = sorted(df["Linha"].unique())
+    status_cores = {
+        "Concluído": "🟢",
+        "Em andamento": "🟡",
+        "Não iniciado": "🔴",
+        "Ação Contínua": "🔵"
+    }
 
-    linhas_unicas = df["Linha"].unique()
-    colunas = st.columns(4)
+    num_por_linha = 4
+    for i in range(0, len(linhas), num_por_linha):
+        cols = st.columns(num_por_linha)
+        for j, linha in enumerate(linhas[i:i+num_por_linha]):
+            df_linha = df[df["Linha"] == linha]
+            total = len(df_linha)
+            concluidas = len(df_linha[df_linha["Status"] == "Concluído"])
+            status_dominante = df_linha["Status"].mode()[0]
+            cor = status_cores.get(status_dominante, "⚪")
 
-    for i, linha in enumerate(linhas_unicas):
-        df_linha = df[df["Linha"] == linha]
-        total = len(df_linha)
-        concluidas = len(df_linha[df_linha["Status"] == "Concluído"])
-        status_mais_frequente = df_linha["Status"].mode().iloc[0] if not df_linha.empty else "Desconhecido"
-        emoji = emoji_status(status_mais_frequente)
+            with cols[j]:
+                st.markdown(f"""
+                    <div style='
+                        background-color: #fff;
+                        border: 1px solid #ccc;
+                        border-radius: 12px;
+                        padding: 16px;
+                        height: 230px;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: space-between;
+                        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+                    '>
+                        <div>
+                            <h3 style='margin-bottom:10px;'>{cor} {linha}</h3>
+                            <ul style='padding-left: 20px; margin: 0;'>
+                                <li><strong>Total:</strong> {total} tarefas</li>
+                                <li><strong>Concluídas:</strong> {concluidas}</li>
+                                <li><strong>Status dominante:</strong> <code>{status_dominante}</code></li>
+                            </ul>
+                        </div>
+                        <a href="#ver_{linha.replace(' ', '_')}" style='
+                            display: block;
+                            text-align: center;
+                            padding: 8px;
+                            margin-top: 12px;
+                            background-color: #f0f0f0;
+                            border: 1px solid #ccc;
+                            border-radius: 8px;
+                            text-decoration: none;
+                            color: #333;
+                            font-weight: bold;
+                        '>Ver tarefas da linha '{linha}'</a>
+                    </div>
+                """, unsafe_allow_html=True)
 
-        with colunas[i % 4]:
-            with st.container(border=True):
-                st.markdown(f"### {emoji} {linha}")
-                st.markdown(f"- **Total**: {total} tarefas")
-                st.markdown(f"- **Concluídas**: {concluidas}")
-                st.markdown(f"- **Status dominante**: `{status_mais_frequente}`")
-
-                if st.button(f"Ver tarefas da linha '{linha}'", key=f"botao_{linha}"):
-                    for fase in df_linha["Fase"].unique():
-                        st.markdown(f"#### 🗂️ Fase: {fase}")
-                        df_fase = df_linha[df_linha["Fase"] == fase]
-                        st.dataframe(df_fase[["Tarefa", "Status", "Observações", "Prazo"]], use_container_width=True)
+    # Anchors de destino
+    for linha in linhas:
+        st.markdown(f"<hr><h4 id='ver_{linha.replace(' ', '_')}'>📄 Tarefas da linha '{linha}'</h4>", unsafe_allow_html=True)
+        st.dataframe(df[df["Linha"] == linha])
 
 # === ABA 4: INSIGHTS ===
 with tabas[3]:
