@@ -120,39 +120,41 @@ with tabas[2]:
                 st.markdown(f"""
                     <div style='
                         background-color: #fff;
-                        border: 1px solid #ccc;
+                        border: 1px solid #ddd;
                         border-radius: 12px;
                         padding: 16px;
-                        height: 230px;
+                        height: 240px;
+                        box-shadow: 1px 2px 5px rgba(0,0,0,0.05);
                         display: flex;
                         flex-direction: column;
                         justify-content: space-between;
-                        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
                     '>
                         <div>
-                            <h3 style='margin-bottom:10px;'>{cor} {linha}</h3>
-                            <ul style='padding-left: 20px; margin: 0;'>
+                            <h4 style='margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'>
+                                {cor} <span style="font-size: 18px;">{linha}</span>
+                            </h4>
+                            <ul style='padding-left: 20px; margin: 0; font-size: 15px;'>
                                 <li><strong>Total:</strong> {total} tarefas</li>
                                 <li><strong>Concluídas:</strong> {concluidas}</li>
-                                <li><strong>Status dominante:</strong> <code>{status_dominante}</code></li>
+                                <li><strong>Status dominante:</strong> <span style="font-family: monospace;">{status_dominante}</span></li>
                             </ul>
                         </div>
                         <a href="#ver_{linha.replace(' ', '_')}" style='
-                            display: block;
                             text-align: center;
-                            padding: 8px;
+                            padding: 6px;
                             margin-top: 12px;
-                            background-color: #f0f0f0;
-                            border: 1px solid #ccc;
-                            border-radius: 8px;
+                            background-color: #f7f7f7;
+                            border-radius: 6px;
                             text-decoration: none;
-                            color: #333;
-                            font-weight: bold;
-                        '>Ver tarefas da linha '{linha}'</a>
+                            font-weight: 500;
+                            border: 1px solid #ccc;
+                            display: block;
+                            font-size: 14px;
+                        '>Ver tarefas da linha</a>
                     </div>
                 """, unsafe_allow_html=True)
 
-    # Anchors de destino
+    # Âncoras abaixo com dataframes detalhados
     for linha in linhas:
         st.markdown(f"<hr><h4 id='ver_{linha.replace(' ', '_')}'>📄 Tarefas da linha '{linha}'</h4>", unsafe_allow_html=True)
         st.dataframe(df[df["Linha"] == linha])
