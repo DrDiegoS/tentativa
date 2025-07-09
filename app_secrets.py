@@ -17,7 +17,7 @@ client = gspread.authorize(creds)
 
 # ID e Nome da Planilha
 SHEET_ID = "1dQDcSnroIs2iefAsgcDA11jNbVqDUP6w0HFOY-yzBYc"
-SHEET_NAME = "Página1"
+SHEET_NAME = "bd"
 sheet = client.open_by_key(SHEET_ID).worksheet(SHEET_NAME)
 
 # === LEITURA DOS DADOS ===
