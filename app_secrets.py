@@ -94,17 +94,17 @@ with tabas[1]:
         except Exception as e:
             st.error(f"Erro ao salvar: {e}")
 
-# === ABA 3: POR LINHA (Organizado por Quarter com gráfico e cores) ===
+# === ABA 3: POR LINHA (Organizado por Quarter) ===
 with tabas[2]:
     st.subheader("📘 Visualização por Linha de Cuidado")
 
     quarters_ordenados = ["Q1", "Q2", "Q3", "Q4", "Sem Quarter"]
     nomes_quarters = {
-        "Q1": "🔷 Quarter 1",
-        "Q2": "🟢 Quarter 2",
-        "Q3": "🟠 Quarter 3",
-        "Q4": "🟣 Quarter 4",
-        "Sem Quarter": "⚪ Sem Quarter"
+        "Q1": "Quarter 1",
+        "Q2": "Quarter 2",
+        "Q3": "Quarter 3",
+        "Q4": "Quarter 4",
+        "Sem Quarter": "Sem Quarter"
     }
 
     status_cores = {
@@ -119,12 +119,10 @@ with tabas[2]:
         if df_q.empty:
             continue
 
-        st.markdown(f"## {nomes_quarters[q]}")
-        linhas = sorted(df_q["Linha"].unique(), key=lambda l: 
-                        (df_q[df_q["Linha"] == l]["Status"].value_counts(normalize=True).get("Concluído", 0)), 
-                        reverse=True)
-
+        st.markdown(f"### 🔶 {nomes_quarters[q]}")
+        linhas = sorted(df_q["Linha"].unique())
         num_por_linha = 3
+
         for i in range(0, len(linhas), num_por_linha):
             cols = st.columns(num_por_linha)
             for j, linha in enumerate(linhas[i:i+num_por_linha]):
@@ -163,19 +161,6 @@ with tabas[2]:
                     with st.expander(f"📂 Ver tarefas da linha '{linha}'"):
                         colunas_exibir = ["Tarefa", "Status"]
                         st.dataframe(df_linha[colunas_exibir], use_container_width=True)
-
-                        # Gráfico de barras por status dentro da linha
-                        grafico = df_linha["Status"].value_counts().reset_index()
-                        grafico.columns = ["Status", "Quantidade"]
-                        fig = px.bar(grafico, x="Status", y="Quantidade", color="Status", 
-                                     color_discrete_map={
-                                         "Concluído": "green",
-                                         "Em andamento": "gold",
-                                         "Não iniciado": "red",
-                                         "Ação Contínua": "blue"
-                                     },
-                                     title="Distribuição de Tarefas por Status")
-                        st.plotly_chart(fig, use_container_width=True)
 
 # === ABA 4: INSIGHTS ===
 with tabas[3]:
