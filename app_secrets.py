@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import gspread
@@ -16,7 +15,7 @@ service_account_info = st.secrets["google_service_account"]
 creds = Credentials.from_service_account_info(service_account_info, scopes=SCOPES)
 client = gspread.authorize(creds)
 
-# ID e Nome da Planilha
+# === ID e Nome da Planilha ===
 SHEET_ID = "1dQDcSnroIs2iefAsgcDA11jNbVqDUP6w0HFOY-yzBYc"
 SHEET_NAME = "bd"
 sheet = client.open_by_key(SHEET_ID).worksheet(SHEET_NAME)
@@ -24,6 +23,7 @@ sheet = client.open_by_key(SHEET_ID).worksheet(SHEET_NAME)
 # === LEITURA DOS DADOS ===
 data = sheet.get_all_records()
 df = pd.DataFrame(data)
+df.columns = df.columns.str.strip()  # remove espaços acidentais nos nomes
 
 # === FILTROS ===
 st.sidebar.header("🔍 Filtros")
@@ -46,17 +46,18 @@ if status_sel != "Todos":
 # === GRÁFICOS ===
 st.subheader("📈 Visão Geral em Gráficos")
 
-# Gráfico de pizza: Distribuição de status
-fig_status = px.pie(df_filtrado, names="Status", title="Distribuição de Status")
-st.plotly_chart(fig_status, use_container_width=True)
+if not df_filtrado.empty:
+    fig_status = px.pie(df_filtrado, names="Status", title="Distribuição de Status")
+    st.plotly_chart(fig_status, use_container_width=True)
 
-# Gráfico de barras: Tarefas por Linha
-fig_linha = px.bar(df_filtrado, x="Linha", color="Status", title="Tarefas por Linha de Cuidado", barmode="group")
-st.plotly_chart(fig_linha, use_container_width=True)
+    fig_linha = px.bar(df_filtrado, x="Linha", color="Status", title="Tarefas por Linha de Cuidado", barmode="group")
+    st.plotly_chart(fig_linha, use_container_width=True)
 
-# Gráfico de barras: Tarefas por Fase
-fig_fase = px.bar(df_filtrado, x="Fase", color="Status", title="Tarefas por Fase", barmode="group")
-st.plotly_chart(fig_fase, use_container_width=True)
+    fig_fase = px.bar(df_filtrado, x="Fase", color="Status", title="Tarefas por Fase", barmode="group")
+    st.plotly_chart(fig_fase, use_container_width=True)
+else:
+    st.info("Nenhuma tarefa encontrada para os filtros selecionados.")
+
 # === INDICADORES ===
 col1, col2, col3 = st.columns(3)
 col1.metric("Total de Tarefas", len(df_filtrado))
@@ -70,7 +71,7 @@ edited_df = st.data_editor(df_filtrado, use_container_width=True, num_rows="dyna
 # === BOTÃO DE SALVAR ===
 if st.button("💾 Salvar Alterações"):
     try:
-        df.update(edited_df)
+        df.loc[edited_df.index, :] = edited_df  # atualização segura
         sheet.update([df.columns.values.tolist()] + df.values.tolist())
         st.success("Alterações salvas com sucesso!")
     except Exception as e:
