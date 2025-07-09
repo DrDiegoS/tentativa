@@ -23,6 +23,35 @@ sheet = client.open_by_key(SHEET_ID).worksheet(SHEET_NAME)
 data = sheet.get_all_records()
 df = pd.DataFrame(data)
 
+# === ATRIBUIR QUARTER AUTOMATICAMENTE ===
+map_quarter = {
+    "Gestação Segura": "Q1",
+    "Coluna": "Q1",
+    "DRC e Tx Renal": "Q1",
+    "Saúde Mental": "Q1",
+    "ICC": "Q1",
+    "Pós IAM": "Q1",
+    "Emagrecimento": "Q1",
+    "Fumo Zero": "Q1",
+    "Anticoagulantes": "Q1",
+    "CA Mama": "Q1",
+    "Pós-AVC": "Q2",
+    "Endometriose​": "Q2",
+    "CA de próstata​": "Q2",
+    "CA de pulmão​": "Q2",
+    "Arritmia complexa​": "Q2",
+    "Valvopatia​": "Q2",
+    "Doença autoimune​": "Q2",
+    "CA colorretal​": "Q3",
+    "DM insulino –dependente (HAS/DIA)​": "Q3",
+    "DPOC": "Q3",
+    "ASMA": "Q3",
+    "Cefaleia​": "Q3",
+    "Tx hepático​": "Q3",
+    "TMO​": "Q3"
+}
+df["Quarter"] = df["Linha"].map(map_quarter).fillna("Sem Quarter")
+
 # === ADICIONAR NOVA LINHA DE CUIDADO ===
 st.sidebar.markdown("---")
 st.sidebar.header("➕ Nova Linha de Cuidado")
@@ -36,6 +65,7 @@ if st.sidebar.button("Adicionar Nova Linha"):
         nova_estrutura['Status'] = "Não iniciado"
         nova_estrutura['Observações'] = ""
         nova_estrutura['Prazo'] = ""
+        nova_estrutura['Quarter'] = map_quarter.get(nova_linha, "Sem Quarter")
         nova_estrutura = nova_estrutura[df.columns.tolist()]
         df = pd.concat([df, nova_estrutura], ignore_index=True)
         sheet.update([df.columns.tolist()] + df.values.tolist())
@@ -75,6 +105,23 @@ if not df_filtrado.empty:
     st.plotly_chart(fig_fase, use_container_width=True)
 else:
     st.info("Nenhuma tarefa encontrada para os filtros selecionados.")
+
+# === GRÁFICO DE PROGRESSO POR QUARTER ===
+st.subheader("📆 Progresso por Quarter")
+if "Quarter" in df.columns:
+    df_quarter = df.copy()
+    df_quarter["Contagem"] = 1
+    progresso_q = df_quarter.groupby(["Quarter", "Status"]).agg({"Contagem": "sum"}).reset_index()
+    fig_quarter = px.bar(
+        progresso_q,
+        x="Quarter",
+        y="Contagem",
+        color="Status",
+        title="Progresso das Linhas por Quarter",
+        barmode="stack",
+        category_orders={"Quarter": ["Q1", "Q2", "Q3", "Q4", "Sem Quarter"]}
+    )
+    st.plotly_chart(fig_quarter, use_container_width=True)
 
 # === INDICADORES ===
 col1, col2, col3 = st.columns(3)
@@ -128,12 +175,10 @@ st.subheader("💬 Insights Inteligentes")
 
 try:
     resumo = []
-
     total_tarefas = len(df)
     concluidas = df[df["Status"] == "Concluído"]
     andamento = df[df["Status"] == "Em andamento"]
     nao_iniciado = df[df["Status"] == "Não iniciado"]
-
     pendencias = df[df["Status"] != "Concluído"].groupby("Linha").size().sort_values(ascending=False)
 
     resumo.append(f"- Total de tarefas: **{total_tarefas}**")
