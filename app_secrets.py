@@ -144,7 +144,19 @@ with tabas[2]:
 
                 with st.expander(f"📂 Ver detalhes de {linha}"):
                     colunas_exibir = ["Tarefa", "Status"]
-                    st.dataframe(df[df["Linha"] == linha][colunas_exibir], use_container_width=True)
+                    dados_linha = df[df["Linha"] == linha][colunas_exibir]
+
+                    def cor_status(s):
+                        cores = {
+                            "Concluído": "#d4edda",       # verde claro
+                            "Em andamento": "#fff3cd",    # amarelo claro
+                            "Não iniciado": "#f8d7da",    # vermelho claro
+                            "Ação Contínua": "#d1ecf1"    # azul claro
+                        }
+                        return f"background-color: {cores.get(s, '#ffffff')}"
+
+                    styled = dados_linha.style.applymap(cor_status, subset=["Status"])
+                    st.write(styled.to_html(escape=False), unsafe_allow_html=True)
 
 # === ABA 4: INSIGHTS ===
 with tabas[3]:
