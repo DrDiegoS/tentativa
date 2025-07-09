@@ -96,15 +96,43 @@ with tabas[1]:
 
 # === ABA 3: POR LINHA ===
 with tabas[2]:
-    st.subheader("🧭 Navegação por Linha de Cuidado")
-    for linha in sorted(df["Linha"].unique()):
-        with st.expander(f"🔹 {linha}"):
-            fases = df[df["Linha"] == linha]["Fase"].unique()
-            for fase in sorted(fases):
-                st.markdown(f"#### 📌 {fase}")
-                subtabela = df[(df["Linha"] == linha) & (df["Fase"] == fase)].copy()
-                subtabela["Status"] = subtabela["Status"].apply(status_emoji)
-                st.dataframe(subtabela[["Tarefa", "Status", "Observações", "Prazo"]])
+    st.subheader("📘 Visualização por Linha")
+
+    # Função para obter emoji do status dominante
+    def emoji_status(status):
+        if status == "Concluído":
+            return "🟢"
+        elif status == "Em andamento":
+            return "🟡"
+        elif status == "Não iniciado":
+            return "🔴"
+        elif status == "Ação Contínua":
+            return "🔵"
+        else:
+            return "⚪"
+
+    linhas_unicas = df["Linha"].unique()
+    colunas = st.columns(4)
+
+    for i, linha in enumerate(linhas_unicas):
+        df_linha = df[df["Linha"] == linha]
+        total = len(df_linha)
+        concluidas = len(df_linha[df_linha["Status"] == "Concluído"])
+        status_mais_frequente = df_linha["Status"].mode().iloc[0] if not df_linha.empty else "Desconhecido"
+        emoji = emoji_status(status_mais_frequente)
+
+        with colunas[i % 4]:
+            with st.container(border=True):
+                st.markdown(f"### {emoji} {linha}")
+                st.markdown(f"- **Total**: {total} tarefas")
+                st.markdown(f"- **Concluídas**: {concluidas}")
+                st.markdown(f"- **Status dominante**: `{status_mais_frequente}`")
+
+                if st.button(f"Ver tarefas da linha '{linha}'", key=f"botao_{linha}"):
+                    for fase in df_linha["Fase"].unique():
+                        st.markdown(f"#### 🗂️ Fase: {fase}")
+                        df_fase = df_linha[df_linha["Fase"] == fase]
+                        st.dataframe(df_fase[["Tarefa", "Status", "Observações", "Prazo"]], use_container_width=True)
 
 # === ABA 4: INSIGHTS ===
 with tabas[3]:
