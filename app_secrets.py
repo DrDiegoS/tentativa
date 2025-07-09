@@ -2,6 +2,7 @@
 import streamlit as st
 import pandas as pd
 import gspread
+import plotly.express as px
 from google.oauth2.service_account import Credentials
 from datetime import datetime
 
@@ -42,6 +43,20 @@ if fase_sel != "Todos":
 if status_sel != "Todos":
     df_filtrado = df_filtrado[df_filtrado["Status"] == status_sel]
 
+# === GRÁFICOS ===
+st.subheader("📈 Visão Geral em Gráficos")
+
+# Gráfico de pizza: Distribuição de status
+fig_status = px.pie(df_filtrado, names="Status", title="Distribuição de Status")
+st.plotly_chart(fig_status, use_container_width=True)
+
+# Gráfico de barras: Tarefas por Linha
+fig_linha = px.bar(df_filtrado, x="Linha", color="Status", title="Tarefas por Linha de Cuidado", barmode="group")
+st.plotly_chart(fig_linha, use_container_width=True)
+
+# Gráfico de barras: Tarefas por Fase
+fig_fase = px.bar(df_filtrado, x="Fase", color="Status", title="Tarefas por Fase", barmode="group")
+st.plotly_chart(fig_fase, use_container_width=True)
 # === INDICADORES ===
 col1, col2, col3 = st.columns(3)
 col1.metric("Total de Tarefas", len(df_filtrado))
