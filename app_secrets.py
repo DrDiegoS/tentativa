@@ -94,11 +94,19 @@ with tabas[1]:
         except Exception as e:
             st.error(f"Erro ao salvar: {e}")
 
-# === ABA 3: POR LINHA ===
+# === ABA 3: POR LINHA (Organizado por Quarter) ===
 with tabas[2]:
     st.subheader("📘 Visualização por Linha de Cuidado")
 
-    linhas = sorted(df["Linha"].unique())
+    quarters_ordenados = ["Q1", "Q2", "Q3", "Q4", "Sem Quarter"]
+    nomes_quarters = {
+        "Q1": "Quarter 1",
+        "Q2": "Quarter 2",
+        "Q3": "Quarter 3",
+        "Q4": "Quarter 4",
+        "Sem Quarter": "Sem Quarter"
+    }
+
     status_cores = {
         "Concluído": "🟢",
         "Em andamento": "🟡",
@@ -106,57 +114,53 @@ with tabas[2]:
         "Ação Contínua": "🔵"
     }
 
-    num_por_linha = 3
-    for i in range(0, len(linhas), num_por_linha):
-        cols = st.columns(num_por_linha)
-        for j, linha in enumerate(linhas[i:i+num_por_linha]):
-            df_linha = df[df["Linha"] == linha]
-            total = len(df_linha)
-            concluidas = len(df_linha[df_linha["Status"] == "Concluído"])
-            status_dominante = df_linha["Status"].mode()[0]
-            cor = status_cores.get(status_dominante, "⚪")
+    for q in quarters_ordenados:
+        df_q = df[df["Quarter"] == q]
+        if df_q.empty:
+            continue
 
-            with cols[j]:
-                st.markdown(f"""
-                    <div style='
-                        background-color: #fff;
-                        border: 1px solid #ddd;
-                        border-radius: 12px;
-                        padding: 16px;
-                        height: 240px;
-                        box-shadow: 1px 2px 5px rgba(0,0,0,0.05);
-                        display: flex;
-                        flex-direction: column;
-                        justify-content: space-between;
-                    '>
-                        <div>
-                            <h4 style='margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'>
-                                {cor} <span style="font-size: 18px;">{linha}</span>
-                            </h4>
-                            <ul style='padding-left: 20px; margin: 0; font-size: 15px;'>
-                                <li><strong>Total:</strong> {total} tarefas</li>
-                                <li><strong>Concluídas:</strong> {concluidas}</li>
-                                <li><strong>Status dominante:</strong> <span style="font-family: monospace;">{status_dominante}</span></li>
-                            </ul>
+        st.markdown(f"### 🔶 {nomes_quarters[q]}")
+        linhas = sorted(df_q["Linha"].unique())
+        num_por_linha = 4
+
+        for i in range(0, len(linhas), num_por_linha):
+            cols = st.columns(num_por_linha)
+            for j, linha in enumerate(linhas[i:i+num_por_linha]):
+                df_linha = df_q[df_q["Linha"] == linha]
+                total = len(df_linha)
+                concluidas = len(df_linha[df_linha["Status"] == "Concluído"])
+                status_dominante = df_linha["Status"].mode()[0]
+                cor = status_cores.get(status_dominante, "⚪")
+
+                with cols[j]:
+                    st.markdown(f"""
+                        <div style='
+                            background-color: #fff;
+                            border: 1px solid #ddd;
+                            border-radius: 12px;
+                            padding: 16px;
+                            height: 240px;
+                            box-shadow: 1px 2px 5px rgba(0,0,0,0.05);
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: space-between;
+                        '>
+                            <div>
+                                <h4 style='margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'>
+                                    {cor} <span style="font-size: 18px;">{linha}</span>
+                                </h4>
+                                <ul style='padding-left: 20px; margin: 0; font-size: 15px;'>
+                                    <li><strong>Total:</strong> {total} tarefas</li>
+                                    <li><strong>Concluídas:</strong> {concluidas}</li>
+                                    <li><strong>Status dominante:</strong> <span style="font-family: monospace;">{status_dominante}</span></li>
+                                </ul>
+                            </div>
                         </div>
-                    </div>
-                """, unsafe_allow_html=True)
+                    """, unsafe_allow_html=True)
 
-                with st.expander(f"📂 Ver detalhes de {linha}"):
-                    colunas_exibir = ["Tarefa", "Status"]
-                    dados_linha = df[df["Linha"] == linha][colunas_exibir]
-
-                    def cor_status(s):
-                        cores = {
-                            "Concluído": "#d4edda",       # verde claro
-                            "Em andamento": "#fff3cd",    # amarelo claro
-                            "Não iniciado": "#f8d7da",    # vermelho claro
-                            "Ação Contínua": "#d1ecf1"    # azul claro
-                        }
-                        return f"background-color: {cores.get(s, '#ffffff')}"
-
-                    styled = dados_linha.style.applymap(cor_status, subset=["Status"])
-                    st.write(styled.to_html(escape=False), unsafe_allow_html=True)
+                    with st.expander(f"📂 Ver tarefas da linha '{linha}'"):
+                        colunas_exibir = ["Tarefa", "Status"]
+                        st.dataframe(df_linha[colunas_exibir], use_container_width=True)
 
 # === ABA 4: INSIGHTS ===
 with tabas[3]:
