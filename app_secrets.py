@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import gspread
-import plotly.express as px
 from google.oauth2.service_account import Credentials
 from datetime import datetime
 
@@ -15,7 +14,7 @@ service_account_info = st.secrets["google_service_account"]
 creds = Credentials.from_service_account_info(service_account_info, scopes=SCOPES)
 client = gspread.authorize(creds)
 
-# === ID e Nome da Planilha ===
+# ID e Nome da Planilha
 SHEET_ID = "1dQDcSnroIs2iefAsgcDA11jNbVqDUP6w0HFOY-yzBYc"
 SHEET_NAME = "bd"
 sheet = client.open_by_key(SHEET_ID).worksheet(SHEET_NAME)
@@ -23,7 +22,35 @@ sheet = client.open_by_key(SHEET_ID).worksheet(SHEET_NAME)
 # === LEITURA DOS DADOS ===
 data = sheet.get_all_records()
 df = pd.DataFrame(data)
-df.columns = df.columns.str.strip()  # remove espaços acidentais nos nomes
+
+# === ADICIONAR NOVA LINHA DE CUIDADO ===
+st.sidebar.markdown("---")
+st.sidebar.header("➕ Nova Linha de Cuidado")
+nova_linha = st.sidebar.text_input("Nome da nova linha")
+
+if st.sidebar.button("Adicionar Nova Linha"):
+    try:
+        # Detecta modelo: fases e tarefas existentes
+        modelo = df[['Fase', 'Tarefa']].drop_duplicates().reset_index(drop=True)
+
+        # Cria nova estrutura
+        nova_estrutura = modelo.copy()
+        nova_estrutura['Linha'] = nova_linha
+        nova_estrutura['Status'] = "Não iniciado"
+        nova_estrutura['Observação'] = ""
+        nova_estrutura['Prazo'] = ""
+
+        # Reorganiza colunas conforme o df original
+        colunas_ordenadas = df.columns.tolist()
+        nova_estrutura = nova_estrutura[colunas_ordenadas]
+
+        # Concatena e atualiza na planilha
+        df_atualizado = pd.concat([df, nova_estrutura], ignore_index=True)
+        sheet.update([df_atualizado.columns.values.tolist()] + df_atualizado.values.tolist())
+
+        st.success(f"Linha de cuidado '{nova_linha}' adicionada com sucesso!")
+    except Exception as e:
+        st.error(f"Erro ao adicionar linha: {e}")
 
 # === FILTROS ===
 st.sidebar.header("🔍 Filtros")
