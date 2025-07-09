@@ -111,9 +111,9 @@ if st.button("💾 Salvar Alterações"):
     except Exception as e:
         st.error(f"Erro ao salvar: {e}")
 
-# === ABAS POR LINHA DE CUIDADO ===
+# === ABA POR LINHA DE CUIDADO ===
 st.markdown("---")
-st.subheader("🗂️ Visualização por Linha")
+st.subheader("📘 Visualização por Linha")
 
 linhas_unicas = df["Linha"].unique()
 abas = st.tabs(list(linhas_unicas))
@@ -121,6 +121,43 @@ for i, linha in enumerate(linhas_unicas):
     with abas[i]:
         st.markdown(f"### Linha: {linha}")
         st.dataframe(df[df["Linha"] == linha])
+
+# === INSIGHTS COM IA ===
+st.markdown("---")
+st.subheader("💬 Insights Inteligentes")
+
+try:
+    resumo = []
+
+    total_tarefas = len(df)
+    concluidas = df[df["Status"] == "Concluído"]
+    andamento = df[df["Status"] == "Em andamento"]
+    nao_iniciado = df[df["Status"] == "Não iniciado"]
+
+    pendencias = df[df["Status"] != "Concluído"].groupby("Linha").size().sort_values(ascending=False)
+
+    resumo.append(f"- Total de tarefas: **{total_tarefas}**")
+    resumo.append(f"- Tarefas concluídas: **{len(concluidas)}** ({len(concluidas)/total_tarefas:.0%})")
+    resumo.append(f"- Tarefas em andamento: **{len(andamento)}**")
+    resumo.append(f"- Tarefas ainda não iniciadas: **{len(nao_iniciado)}**")
+
+    if not pendencias.empty:
+        linha_mais_critica = pendencias.index[0]
+        resumo.append(f"- ⚠️ Linha com mais pendências: **{linha_mais_critica}** ({pendencias.iloc[0]} tarefas não concluídas)")
+
+    fase_critica = df[df["Status"] == "Não iniciado"]["Fase"].value_counts().idxmax()
+    resumo.append(f"- 🕒 Fase com mais tarefas não iniciadas: **{fase_critica}**")
+
+    if len(nao_iniciado) > len(concluidas):
+        resumo.append("👉 **Sugestão:** priorize ações de início das tarefas paradas para impulsionar o avanço geral.")
+    elif len(andamento) > len(concluidas):
+        resumo.append("👉 **Sugestão:** acompanhe de perto as tarefas em andamento para garantir conclusão.")
+
+    for item in resumo:
+        st.markdown(item)
+
+except Exception as e:
+    st.warning(f"Não foi possível gerar os insights automáticos: {e}")
 
 # === RODAPÉ ===
 st.markdown("---")
