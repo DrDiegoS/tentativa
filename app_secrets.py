@@ -50,8 +50,19 @@ if linha_sel != "Todos":
 if status_sel != "Todos":
     df_filtrado = df_filtrado[df_filtrado["Status"] == status_sel]
 
+# === FUNÇÃO DE COR DE STATUS ===
+def status_emoji(status):
+    if status == "Concluído":
+        return "🟢 Concluído"
+    elif status == "Em andamento":
+        return "🟡 Em andamento"
+    elif status == "Ação Contínua":
+        return "🔵 Ação Contínua"
+    else:
+        return "🔴 Não iniciado"
+
 # === NAVEGAÇÃO POR ABAS ===
-tabas = st.tabs(["📈 Visão Geral", "📋 Monitoramento", "📘 Linhas", "💬 Insights", "⚙️ Admin"])
+tabas = st.tabs(["📈 Visão Geral", "📋 Monitoramento", "🧭 Por Linha", "💬 Insights", "⚙️ Admin"])
 
 # === ABA 1: VISÃO GERAL ===
 with tabas[0]:
@@ -85,10 +96,15 @@ with tabas[1]:
 
 # === ABA 3: POR LINHA ===
 with tabas[2]:
-    st.subheader("📘 Visualização por Linha")
-    for linha in df["Linha"].unique():
+    st.subheader("🧭 Navegação por Linha de Cuidado")
+    for linha in sorted(df["Linha"].unique()):
         with st.expander(f"🔹 {linha}"):
-            st.dataframe(df[df["Linha"] == linha])
+            fases = df[df["Linha"] == linha]["Fase"].unique()
+            for fase in sorted(fases):
+                st.markdown(f"#### 📌 {fase}")
+                subtabela = df[(df["Linha"] == linha) & (df["Fase"] == fase)].copy()
+                subtabela["Status"] = subtabela["Status"].apply(status_emoji)
+                st.dataframe(subtabela[["Tarefa", "Status", "Observações", "Prazo"]])
 
 # === ABA 4: INSIGHTS ===
 with tabas[3]:
