@@ -11,17 +11,12 @@ st.title("📊 Dashboard de Acompanhamento de Programas")
 # === CONEXÃO COM GOOGLE SHEETS ===
 SHEET_ID = "1dQDcSnroIs2iefAsgcDA11jNbVqDUP6w0HFOY-yzBYc"
 SHEET_NAME = "Página1"
+SERVICE_ACCOUNT_FILE = "service_account.json"
 
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-CREDENTIALS = Credentials.from_service_account_info({
-    "type": "service_account",
-    "project_id": "cuidados-mil",
-    "private_key_id": "2d1a8f4b2f4e6d4328cfdfdcaaaaaa",  # substituído por segurança
-    "private_key": "-----BEGIN PRIVATE KEY-----\nSEU_SEGREDO_AQUI\n-----END PRIVATE KEY-----\n",
-    "client_email": "streamlit-db@cuidados-mil.iam.gserviceaccount.com",
-    "client_id": "XXXX",
-    "token_uri": "https://oauth2.googleapis.com/token",
-}, scopes=SCOPES)
+CREDENTIALS = Credentials.from_service_account_file(
+    SERVICE_ACCOUNT_FILE, scopes=SCOPES
+)
 
 client = gspread.authorize(CREDENTIALS)
 sheet = client.open_by_key(SHEET_ID).worksheet(SHEET_NAME)
