@@ -17,7 +17,7 @@ with col1:
     st.markdown("<h3 style='margin-top:0;'>Diretoria de Gestão Clínica</h3>", unsafe_allow_html=True)
 
 with col2:
-    st.image("logo_cuidadosmil.png", width=160)  # Ajuste o tamanho conforme necessário
+    st.image("logo_cuidadosmil.png", width=250)  # Ajuste o tamanho conforme necessário
 
 # === CONEXÃO COM GOOGLE SHEETS ===
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
