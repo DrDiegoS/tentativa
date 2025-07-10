@@ -11,7 +11,7 @@ st.set_page_config(layout="wide")
 
 # === CABEÇALHO COM IMAGEM, TÍTULO E SUBTÍTULO ===
 st.image("logo_cuidadosmil.png", width=300)  # Ajuste o tamanho conforme necessário
-st.markdown("<h1 style='margin-bottom:0;'>📊 Dashboard Programas e Linhas de Cuidado</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='margin-bottom:0;'>Dashboard Programas e Linhas de Cuidado</h1>", unsafe_allow_html=True)
 st.markdown("<h3 style='margin-top:0;'>Diretoria de Gestão Clínica</h3>", unsafe_allow_html=True)
 
 # === CONEXÃO COM GOOGLE SHEETS ===
