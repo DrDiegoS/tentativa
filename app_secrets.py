@@ -33,7 +33,25 @@ quarters = {
     "CA colorretal": "Q3", "DM insulino dependente (HAS/DIA)": "Q3", "DPOC": "Q3", "ASMA": "Q3",
     "Cefaleia": "Q3", "Tx hepatico": "Q3", "TMO": "Q3"
 }
-df["Quarter"] = df["Linha"].apply(lambda x: quarters.get(x.strip(), "Sem Quarter"))
+
+# === FUNÇÃO DE NORMALIZAÇÃO PARA EVITAR ERROS DE FORMATAÇÃO ===
+def normalizar(texto):
+    if not isinstance(texto, str):
+        return ""
+    return (
+        texto.strip()
+             .lower()
+             .replace("ç", "c")
+             .replace("ã", "a")
+             .replace("á", "a")
+             .replace("é", "e")
+             .replace("í", "i")
+             .replace("ó", "o")
+             .replace("ú", "u")
+    )
+
+quarters_normalizados = {normalizar(k): v for k, v in quarters.items()}
+df["Quarter"] = df["Linha"].apply(lambda x: quarters_normalizados.get(normalizar(x), "Sem Quarter"))
 
 # === FILTROS ===
 st.sidebar.header("🔍 Filtros")
