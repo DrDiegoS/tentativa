@@ -86,19 +86,35 @@ with tabas[0]:
 # === ABA 2: MONITORAMENTO ===
 with tabas[1]:
     st.subheader("📋 Tabela de Tarefas")
+
+    # Campo de busca
+    palavra_chave = st.text_input("🔎 Buscar tarefa por palavra-chave")
+
+    # Filtro aplicado ao DataFrame
+    df_monitor = df_filtrado.copy()
+    if palavra_chave:
+        df_monitor = df_monitor[df_monitor["Tarefa"].str.contains(palavra_chave, case=False, na=False)]
+
     status_opcoes = ["Não iniciado", "Em andamento", "Concluído", "Ação Contínua"]
     config_colunas = {
         "Status": st.column_config.SelectboxColumn("Status", options=status_opcoes)
     }
-    edited_df = st.data_editor(df_filtrado, use_container_width=True, column_config=config_colunas, num_rows="dynamic")
+
+    edited_df = st.data_editor(
+        df_monitor,
+        use_container_width=True,
+        column_config=config_colunas,
+        num_rows="dynamic"
+    )
+
     if st.button("💾 Salvar Alteracoes"):
         try:
-            df.loc[edited_df.index, :] = edited_df
+            df.update(edited_df)  # Atualiza apenas as linhas editadas
             sheet.update([df.columns.tolist()] + df.values.tolist())
-            st.success("Alteracoes salvas com sucesso!")
+            st.success("Alterações salvas com sucesso!")
         except Exception as e:
             st.error(f"Erro ao salvar: {e}")
-
+            
 # === ABA 3: POR LINHA ===
 with tabas[2]:
     st.subheader("📘 Visualização por Linha de Cuidado")
