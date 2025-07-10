@@ -140,6 +140,7 @@ with tabas[2]:
                     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False}, key=f"pie_{linha.replace(' ', '_')}_{quarter}")
 
                     st.markdown("</div>", unsafe_allow_html=True)
+                    
 # === ABA 4: INSIGHTS ===
 with tabas[3]:
     st.subheader("💬 Insights Inteligentes")
