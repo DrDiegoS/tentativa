@@ -10,14 +10,14 @@ from datetime import datetime
 st.set_page_config(page_title="Acompanhamento de Linhas de Cuidado", layout="wide")
 
 # === CABEÇALHO COM TÍTULO À ESQUERDA E LOGO À DIREITA ===
-col1, col2 = st.columns([6, 2])  # aumentei a proporção da imagem
+col1, col2 = st.columns([6, 1])  # Ajuste proporcional entre texto e imagem
 
 with col1:
     st.markdown("<h1 style='margin-bottom:0;'>📊 Dashboard Programas e Linhas de Cuidado</h1>", unsafe_allow_html=True)
     st.markdown("<h3 style='margin-top:0;'>Diretoria de Gestão Clínica</h3>", unsafe_allow_html=True)
 
 with col2:
-    st.image("20212959-1D45-4306-8FB9-681EC790A6AE.png", width=300)  # aumente aqui se quiser ainda maior
+    st.image("logo_cuidadosmil.png", width=220)  # Aumente esse valor se quiser ainda maior
 
 # === CONEXÃO COM GOOGLE SHEETS ===
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
