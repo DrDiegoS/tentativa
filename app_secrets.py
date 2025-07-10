@@ -87,17 +87,21 @@ with tabas[0]:
 with tabas[1]:
     st.subheader("📋 Tabela de Tarefas")
 
-    # Campo de busca
-    palavra_chave = st.text_input("🔎 Buscar tarefa por palavra-chave")
+    palavra_chave = st.text_input("🔎 Buscar por tarefa, fase ou linha")
 
-    # Filtro aplicado ao DataFrame
     df_monitor = df_filtrado.copy()
     if palavra_chave:
-        df_monitor = df_monitor[df_monitor["Tarefa"].str.contains(palavra_chave, case=False, na=False)]
+        filtro = (
+            df_monitor["Tarefa"].str.contains(palavra_chave, case=False, na=False) |
+            df_monitor["Fase"].str.contains(palavra_chave, case=False, na=False) |
+            df_monitor["Linha"].str.contains(palavra_chave, case=False, na=False)
+        )
+        df_monitor = df_monitor[filtro]
 
     status_opcoes = ["Não iniciado", "Em andamento", "Concluído", "Ação Contínua"]
     config_colunas = {
-        "Status": st.column_config.SelectboxColumn("Status", options=status_opcoes)
+        "Status": st.column_config.SelectboxColumn("Status", options=status_opcoes),
+        "Observações": st.column_config.TextColumn("Observações")
     }
 
     edited_df = st.data_editor(
@@ -107,9 +111,9 @@ with tabas[1]:
         num_rows="dynamic"
     )
 
-    if st.button("💾 Salvar Alteracoes"):
+    if st.button("💾 Salvar Alterações"):
         try:
-            df.update(edited_df)  # Atualiza apenas as linhas editadas
+            df.update(edited_df)
             sheet.update([df.columns.tolist()] + df.values.tolist())
             st.success("Alterações salvas com sucesso!")
         except Exception as e:
