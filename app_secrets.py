@@ -56,14 +56,30 @@ tabas = st.tabs(["📈 Visão Geral", "📋 Monitoramento", "📘 Linhas", "💬
 # === ABA 1: VISÃO GERAL ===
 with tabas[0]:
     st.subheader("📈 Visão Geral em Gráficos")
+
     if not df_filtrado.empty:
-        col1, col2 = st.columns(2)
-        with col1:
+        # === Contadores Visuais ===
+        col1, col2, col3 = st.columns(3)
+        col1.metric("📊 Total de Tarefas", len(df_filtrado))
+        col2.metric("✅ Concluídas", len(df_filtrado[df_filtrado["Status"] == "Concluído"]))
+        col3.metric("⚠️ Pendentes", len(df_filtrado[df_filtrado["Status"] != "Concluído"]))
+
+        # === Gráficos ===
+        col4, col5 = st.columns(2)
+        with col4:
             fig_status = px.pie(df_filtrado, names="Status", title="Distribuição de Status")
             st.plotly_chart(fig_status, use_container_width=True)
-        with col2:
+
+        with col5:
             fig_quarter = px.bar(df_filtrado, x="Quarter", color="Status", barmode="group", title="Status por Quarter")
             st.plotly_chart(fig_quarter, use_container_width=True)
+
+        # === Tabela Resumo ===
+        st.markdown("### 📋 Resumo por Linha de Cuidado")
+        resumo = df_filtrado.groupby(["Linha", "Status"]).size().unstack(fill_value=0)
+        resumo["Total"] = resumo.sum(axis=1)
+        st.dataframe(resumo.reset_index(), use_container_width=True)
+
     else:
         st.info("Nenhuma tarefa encontrada para os filtros selecionados.")
 
