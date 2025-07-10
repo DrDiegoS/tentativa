@@ -13,11 +13,11 @@ st.set_page_config(page_title="Acompanhamento de Linhas de Cuidado", layout="wid
 col1, col2 = st.columns([6, 1])  # Proporção ajustável
 
 with col1:
-    st.markdown("<h1 style='margin-bottom:0;'>📊 Dashboard Programas e Linhas de Cuidado</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='margin-bottom:0;'>Programas e Linhas de Cuidado</h1>", unsafe_allow_html=True)
     st.markdown("<h3 style='margin-top:0;'>Diretoria de Gestão Clínica</h3>", unsafe_allow_html=True)
 
 with col2:
-    st.image("logo_cuidadosmil.png", width=250)  # Ajuste o tamanho conforme necessário
+    st.image("logo_cuidadosmil.png", width=220)  # Ajuste o tamanho conforme necessário
 
 # === CONEXÃO COM GOOGLE SHEETS ===
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
