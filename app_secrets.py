@@ -8,7 +8,7 @@ from datetime import datetime
 
 # === CONFIGURAÇÃO INICIAL ===
 st.set_page_config(page_title="Acompanhamento de Linhas de Cuidado", layout="wide")
-st.title("📊 Dashboard de Acompanhamento de Programas")
+st.title("📊 Dashboard Programas e Linhas de Cuidado")
 st.markdown("### Diretoria de Gestão Clínica")
 
 # === CONEXÃO COM GOOGLE SHEETS ===
