@@ -35,6 +35,11 @@ quarters = {
 }
 df["Quarter"] = df["Linha"].apply(lambda x: quarters.get(x.strip(), "Sem Quarter"))
 
+# === CONTROLE DE TROCA DE ABAS PARA RESET ===
+abas_nomes = ["📈 Visão Geral", "📋 Monitoramento", "🧭 Por Linha", "💬 Insights", "⚙️ Admin"]
+if "aba_atual" not in st.session_state:
+    st.session_state.aba_atual = abas_nomes[0]
+
 # === FILTROS ===
 st.sidebar.header("🔍 Filtros")
 quarter_sel = st.sidebar.selectbox("Quarter", ["Todos"] + sorted(df["Quarter"].unique()))
@@ -62,7 +67,17 @@ def status_emoji(status):
         return "🔴 Não iniciado"
 
 # === NAVEGAÇÃO POR ABAS ===
-tabas = st.tabs(["📈 Visão Geral", "📋 Monitoramento", "🧭 Por Linha", "💬 Insights", "⚙️ Admin"])
+tabas = st.tabs(abas_nomes)
+aba_selecionada = None
+for i, tab in enumerate(tabas):
+    with tab:
+        if st.session_state.aba_atual != abas_nomes[i]:
+            if abas_nomes[i] != "🧭 Por Linha":
+                for key in list(st.session_state.keys()):
+                    if key.startswith("pie_"):
+                        del st.session_state[key]
+            st.session_state.aba_atual = abas_nomes[i]
+        aba_selecionada = abas_nomes[i]
 
 # === ABA 1: VISÃO GERAL ===
 with tabas[0]:
