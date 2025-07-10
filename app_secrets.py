@@ -203,6 +203,28 @@ with tabas[3]:
         fig.update_layout(xaxis_title="", yaxis_title="Qtd", xaxis_tickangle=-45)
         st.plotly_chart(fig, use_container_width=True)
 
+        # === NOVO INSIGHT: Progresso por Linha ===
+        st.markdown("### ✅ Progresso por Linha (%)")
+
+        progresso = (
+            df.groupby("Linha")["Status"]
+            .apply(lambda x: (x == "Concluído").sum() / len(x) * 100)
+            .reset_index(name="Percentual Concluído")
+        )
+
+        fig_prog = px.bar(
+            progresso,
+            x="Percentual Concluído",
+            y="Linha",
+            orientation="h",
+            text="Percentual Concluído",
+            title="Progresso por Linha de Cuidado (%)",
+        )
+        fig_prog.update_layout(xaxis_title="%", yaxis_title="", xaxis_range=[0, 100])
+        fig_prog.update_traces(texttemplate="%{text:.1f}%", textposition="outside")
+
+        st.plotly_chart(fig_prog, use_container_width=True)
+
     else:
         st.info("Nenhum dado disponível para gerar insights.")
 
