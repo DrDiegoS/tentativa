@@ -14,7 +14,7 @@ col1, col2 = st.columns([6, 1])  # Ajuste proporcional entre texto e imagem
 
 with col1:
     st.markdown("<h1 style='margin-bottom:0;'>📊 Programas e Linhas de Cuidado</h1>", unsafe_allow_html=True)
-    st.markdown("<h3 style='margin-top:0;'>Diretoria de Gestão Clínica</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='margin-top:0;'>Diretoria de Gestão de Saúde</h3>", unsafe_allow_html=True)
 
 with col2:
     st.image("logo_cuidadosmil.png", width=400)  # Aumente esse valor se quiser ainda maior
