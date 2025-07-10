@@ -6,10 +6,13 @@ import plotly.express as px
 from google.oauth2.service_account import Credentials
 from datetime import datetime
 
-# === CONFIGURAÇÃO INICIAL ===
-st.set_page_config(page_title="Acompanhamento de Linhas de Cuidado", layout="wide")
-st.title("📊 Dashboard Programas e Linhas de Cuidado")
-st.markdown("### Diretoria de Gestão Clínica")
+# === CONFIGURAÇÃO DO APP ===
+st.set_page_config(layout="wide")
+
+# === CABEÇALHO COM IMAGEM, TÍTULO E SUBTÍTULO ===
+st.image("AC1D062D-D0A2-48EC-B659-98525495C607.png", width=300)  # Ajuste o tamanho conforme necessário
+st.markdown("<h1 style='margin-bottom:0;'>📊 Dashboard Programas e Linhas de Cuidado</h1>", unsafe_allow_html=True)
+st.markdown("<h3 style='margin-top:0;'>Diretoria de Gestão Clínica</h3>", unsafe_allow_html=True)
 
 # === CONEXÃO COM GOOGLE SHEETS ===
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
