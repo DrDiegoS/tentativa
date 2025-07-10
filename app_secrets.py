@@ -1,4 +1,4 @@
-# === DASHBOARD DE ACOMPANHAMENTO DE PROGRAMAS COM PRAZOS ===
+# === DASHBOARD DE ACOMPANHAMENTO DE PROGRAMAS ===
 import streamlit as st
 import pandas as pd
 import gspread
@@ -24,29 +24,12 @@ sheet = client.open_by_key(SHEET_ID).worksheet(SHEET_NAME)
 data = sheet.get_all_records()
 df = pd.DataFrame(data)
 
-# === CONVERSÃO DA COLUNA PRAZO ===
-df["Prazo"] = pd.to_datetime(df["Prazo"], errors="coerce")
-hoje = datetime.today()
-df["Dias Restantes"] = (df["Prazo"] - hoje).dt.days
-
-def classificar_prazo(dias):
-    if pd.isna(dias):
-        return "🔘 Sem prazo"
-    elif dias < 0:
-        return "❌ Vencido"
-    elif dias <= 3:
-        return "⚠️ Próximo"
-    else:
-        return "✅ No prazo"
-
-df["Status do Prazo"] = df["Dias Restantes"].apply(classificar_prazo)
 
 # === FILTROS ===
 st.sidebar.header("🔍 Filtros")
 quarter_sel = st.sidebar.selectbox("Quarter", ["Todos"] + sorted(df["Quarter"].unique()))
 linha_sel = st.sidebar.selectbox("Linha de Cuidado", ["Todos"] + sorted(df["Linha"].unique()))
 status_sel = st.sidebar.selectbox("Status", ["Todos"] + sorted(df["Status"].unique()))
-prazo_sel = st.sidebar.selectbox("Status do Prazo", ["Todos"] + sorted(df["Status do Prazo"].unique()))
 
 # === APLICAÇÃO DOS FILTROS ===
 df_filtrado = df.copy()
@@ -56,41 +39,44 @@ if linha_sel != "Todos":
     df_filtrado = df_filtrado[df_filtrado["Linha"] == linha_sel]
 if status_sel != "Todos":
     df_filtrado = df_filtrado[df_filtrado["Status"] == status_sel]
-if prazo_sel != "Todos":
-    df_filtrado = df_filtrado[df_filtrado["Status do Prazo"] == prazo_sel]
 
 # === NAVEGAÇÃO POR ABAS ===
 tabas = st.tabs(["📈 Visão Geral", "📋 Monitoramento", "📘 Linhas", "💬 Insights", "⚙️ Admin"])
 
-# === ABA VISÃO GERAL ===
+# === ABA 1: VISÃO GERAL ===
 with tabas[0]:
     st.subheader("📈 Visão Geral em Gráficos")
 
     if not df_filtrado.empty:
+        # === Contadores Visuais ===
         col1, col2, col3 = st.columns(3)
         col1.metric("📊 Total de Tarefas", len(df_filtrado))
         col2.metric("✅ Concluídas", len(df_filtrado[df_filtrado["Status"] == "Concluído"]))
         col3.metric("⚠️ Pendentes", len(df_filtrado[df_filtrado["Status"] != "Concluído"]))
 
+        # === Gráficos ===
         col4, col5 = st.columns(2)
         with col4:
             fig_status = px.pie(df_filtrado, names="Status", title="Distribuição de Status")
             st.plotly_chart(fig_status, use_container_width=True)
 
         with col5:
-            fig_prazo = px.pie(df_filtrado, names="Status do Prazo", title="Distribuição por Prazo")
-            st.plotly_chart(fig_prazo, use_container_width=True)
+            fig_quarter = px.bar(df_filtrado, x="Quarter", color="Status", barmode="group", title="Status por Quarter")
+            st.plotly_chart(fig_quarter, use_container_width=True)
 
+        # === Tabela Resumo ===
         st.markdown("### 📋 Resumo por Linha de Cuidado")
         resumo = df_filtrado.groupby(["Linha", "Status"]).size().unstack(fill_value=0)
         resumo["Total"] = resumo.sum(axis=1)
         st.dataframe(resumo.reset_index(), use_container_width=True)
+
     else:
         st.info("Nenhuma tarefa encontrada para os filtros selecionados.")
 
-# === ABA MONITORAMENTO ===
+# === ABA 2: MONITORAMENTO ===
 with tabas[1]:
     st.subheader("📋 Tabela de Tarefas")
+
     palavra_chave = st.text_input("🔎 Buscar por tarefa, fase ou linha")
 
     df_monitor = df_filtrado.copy()
@@ -122,56 +108,137 @@ with tabas[1]:
             st.success("Alterações salvas com sucesso!")
         except Exception as e:
             st.error(f"Erro ao salvar: {e}")
-
-# === ABA LINHAS ===
+            
+# === ABA 3: POR LINHA ===
 with tabas[2]:
     st.subheader("📘 Visualização por Linha de Cuidado")
-    busca = st.text_input("🔍 Buscar por nome da linha")
+
+    busca_linha = st.text_input("🔍 Buscar por nome da linha")
+
     status_cores = {
         "Concluído": "🟢",
         "Em andamento": "🟡",
         "Não iniciado": "🔴",
         "Ação Contínua": "🔵"
     }
-    linhas_exibir = sorted(df[df["Linha"].str.contains(busca, case=False, na=False) if busca else df["Linha"].notna()]["Linha"].unique())
 
-    for linha in linhas_exibir:
-        df_linha = df[df["Linha"] == linha]
-        total = len(df_linha)
-        concluidas = len(df_linha[df_linha["Status"] == "Concluído"])
-        status_dominante = df_linha["Status"].mode()[0] if not df_linha.empty else "-"
-        cor = status_cores.get(status_dominante, "⚪")
+    # Filtro inteligente por nome
+    linhas_filtradas = df[df["Linha"].str.contains(busca_linha, case=False, na=False)] if busca_linha else df
 
-        with st.expander(f"{cor} {linha} ({total} tarefas)"):
-            st.dataframe(df_linha[["Tarefa", "Status", "Prazo", "Status do Prazo"]], use_container_width=True)
+    quarters_ordenados = ["Q1", "Q2", "Q3", "Q4", "Sem Quarter"]
+    for quarter in quarters_ordenados:
+        linhas_quarter = sorted(linhas_filtradas[linhas_filtradas["Quarter"] == quarter]["Linha"].unique())
+        if not linhas_quarter:
+            continue
 
-# === ABA INSIGHTS ===
+        st.markdown(f"### 🗓️ Quarter {quarter[-1] if quarter != 'Sem Quarter' else 'Desconhecido'}")
+
+        num_por_linha = 3
+        for i in range(0, len(linhas_quarter), num_por_linha):
+            cols = st.columns(num_por_linha)
+            for j, linha in enumerate(linhas_quarter[i:i+num_por_linha]):
+                df_linha = df[df["Linha"] == linha]
+                total = len(df_linha)
+                concluidas = len(df_linha[df_linha["Status"] == "Concluído"])
+                status_dominante = df_linha["Status"].mode()[0]
+                cor = status_cores.get(status_dominante, "⚪")
+
+                with cols[j]:
+                    st.markdown(f"""
+                        <div style='
+                            background-color: #fff;
+                            border: 1px solid #ddd;
+                            border-radius: 12px;
+                            padding: 16px;
+                            height: auto;
+                            box-shadow: 1px 2px 5px rgba(0,0,0,0.05);
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: space-between;
+                        '>
+                            <div>
+                                <h4 style='margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'>
+                                    {cor} <span style="font-size: 18px;">{linha}</span>
+                                </h4>
+                                <ul style='padding-left: 20px; margin: 0; font-size: 15px;'>
+                                    <li><strong>Total:</strong> {total} tarefas</li>
+                                    <li><strong>Concluídas:</strong> {concluidas}</li>
+                                    <li><strong>Status dominante:</strong> <span style="font-family: monospace;">{status_dominante}</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    """, unsafe_allow_html=True)
+
+                    with st.expander(f"📂 Ver tarefas de {linha}"):
+                        colunas_exibir = ["Tarefa", "Status"]
+                        st.dataframe(df_linha[colunas_exibir], use_container_width=True)
+
+                        fig = px.pie(
+                            df_linha,
+                            names="Status",
+                            title=None,
+                            width=300,
+                            height=250
+                        )
+                        fig.update_layout(margin=dict(l=0, r=0, t=0, b=0))
+                        st.plotly_chart(fig, use_container_width=False, key=f"grafico_{linha.replace(' ', '_')}")
+                    
+# === ABA 4: INSIGHTS ===
 with tabas[3]:
     st.subheader("💬 Insights Inteligentes")
 
-    st.markdown("### 📊 Gráfico: Status do Prazo")
-    fig_prazo_hist = px.histogram(df_filtrado, x="Status do Prazo", title="Tarefas por Status do Prazo")
-    st.plotly_chart(fig_prazo_hist, use_container_width=True)
+    if not df.empty:
+        total = len(df)
+        concluidas = len(df[df["Status"] == "Concluído"])
+        pendentes = df[df["Status"] != "Concluído"]
 
-    progresso = (
-        df.groupby("Linha")["Status"]
-        .apply(lambda x: (x == "Concluído").sum() / len(x) * 100)
-        .reset_index(name="Percentual Concluído")
-    )
+        # === Métricas de topo ===
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("📊 Total de Tarefas", total)
+        col2.metric("✅ Concluídas", concluidas, f"{(concluidas/total):.0%}")
+        col3.metric("⚠️ Em Aberto", len(pendentes))
+        linha_critica = pendentes["Linha"].value_counts().idxmax()
+        col4.metric("📍 Mais Pendências", linha_critica)
 
-    fig_prog = px.bar(
-        progresso,
-        x="Percentual Concluído",
-        y="Linha",
-        orientation="h",
-        text="Percentual Concluído",
-        title="Progresso por Linha de Cuidado (%)",
-    )
-    fig_prog.update_layout(xaxis_title="%", yaxis_title="", xaxis_range=[0, 100])
-    fig_prog.update_traces(texttemplate="%{text:.1f}%", textposition="outside")
-    st.plotly_chart(fig_prog, use_container_width=True)
+        # === Gráfico de calor por linha e status ===
+        st.markdown("### 🔥 Mapa de Calor de Pendências")
+        heat_data = pd.crosstab(pendentes["Linha"], pendentes["Status"])
+        st.dataframe(heat_data, use_container_width=True)
 
-# === ABA ADMIN ===
+        # === Gráfico de barras com maiores linhas pendentes ===
+        st.markdown("### 📌 Linhas com Mais Pendências")
+        pendencias_por_linha = pendentes["Linha"].value_counts().reset_index()
+        pendencias_por_linha.columns = ["Linha", "Pendências"]
+        fig = px.bar(pendencias_por_linha, x="Linha", y="Pendências", title="Top Linhas com Pendências", text="Pendências")
+        fig.update_layout(xaxis_title="", yaxis_title="Qtd", xaxis_tickangle=-45)
+        st.plotly_chart(fig, use_container_width=True)
+
+        # === NOVO INSIGHT: Progresso por Linha ===
+        st.markdown("### ✅ Progresso por Linha (%)")
+
+        progresso = (
+            df.groupby("Linha")["Status"]
+            .apply(lambda x: (x == "Concluído").sum() / len(x) * 100)
+            .reset_index(name="Percentual Concluído")
+        )
+
+        fig_prog = px.bar(
+            progresso,
+            x="Percentual Concluído",
+            y="Linha",
+            orientation="h",
+            text="Percentual Concluído",
+            title="Progresso por Linha de Cuidado (%)",
+        )
+        fig_prog.update_layout(xaxis_title="%", yaxis_title="", xaxis_range=[0, 100])
+        fig_prog.update_traces(texttemplate="%{text:.1f}%", textposition="outside")
+
+        st.plotly_chart(fig_prog, use_container_width=True)
+
+    else:
+        st.info("Nenhum dado disponível para gerar insights.")
+
+# === ABA 5: ADMINISTRAÇÃO ===
 with tabas[4]:
     st.subheader("⚙️ Adicionar Nova Linha de Cuidado")
     nova_linha = st.text_input("Nome da nova linha")
@@ -189,6 +256,7 @@ with tabas[4]:
             st.success(f"Linha '{nova_linha}' adicionada com sucesso!")
         except Exception as e:
             st.error(f"Erro ao adicionar linha: {e}")
+
 
 # === RODAPÉ ===
 st.markdown("---")
