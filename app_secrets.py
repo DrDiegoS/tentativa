@@ -176,18 +176,35 @@ with tabas[2]:
 # === ABA 4: INSIGHTS ===
 with tabas[3]:
     st.subheader("💬 Insights Inteligentes")
-    try:
+
+    if not df.empty:
         total = len(df)
         concluidas = len(df[df["Status"] == "Concluído"])
         pendentes = df[df["Status"] != "Concluído"]
-        st.markdown(f"- Total de tarefas: **{total}**")
-        st.markdown(f"- Concluídas: **{concluidas}** ({concluidas/total:.0%})")
-        st.markdown(f"- Tarefas em aberto: **{len(pendentes)}**")
-        if not pendentes.empty:
-            linha_critica = pendentes["Linha"].value_counts().idxmax()
-            st.markdown(f"- Linha com mais pendências: **{linha_critica}**")
-    except:
-        st.warning("Erro ao gerar insights.")
+
+        # === Métricas de topo ===
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("📊 Total de Tarefas", total)
+        col2.metric("✅ Concluídas", concluidas, f"{(concluidas/total):.0%}")
+        col3.metric("⚠️ Em Aberto", len(pendentes))
+        linha_critica = pendentes["Linha"].value_counts().idxmax()
+        col4.metric("📍 Mais Pendências", linha_critica)
+
+        # === Gráfico de calor por linha e status ===
+        st.markdown("### 🔥 Mapa de Calor de Pendências")
+        heat_data = pd.crosstab(pendentes["Linha"], pendentes["Status"])
+        st.dataframe(heat_data, use_container_width=True)
+
+        # === Gráfico de barras com maiores linhas pendentes ===
+        st.markdown("### 📌 Linhas com Mais Pendências")
+        pendencias_por_linha = pendentes["Linha"].value_counts().reset_index()
+        pendencias_por_linha.columns = ["Linha", "Pendências"]
+        fig = px.bar(pendencias_por_linha, x="Linha", y="Pendências", title="Top Linhas com Pendências", text="Pendências")
+        fig.update_layout(xaxis_title="", yaxis_title="Qtd", xaxis_tickangle=-45)
+        st.plotly_chart(fig, use_container_width=True)
+
+    else:
+        st.info("Nenhum dado disponível para gerar insights.")
 
 # === ABA 5: ADMINISTRAÇÃO ===
 with tabas[4]:
