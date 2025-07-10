@@ -7,7 +7,7 @@ from google.oauth2.service_account import Credentials
 from datetime import datetime
 
 # === CONFIGURAÇÃO DO APP ===
-st.set_page_config(layout="wide")
+st.image("logo_cuidadosmil.png", width=300)
 
 # === CABEÇALHO COM IMAGEM, TÍTULO E SUBTÍTULO ===
 st.image("AC1D062D-D0A2-48EC-B659-98525495C607.png", width=300)  # Ajuste o tamanho conforme necessário
