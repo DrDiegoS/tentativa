@@ -7,12 +7,17 @@ from google.oauth2.service_account import Credentials
 from datetime import datetime
 
 # === CONFIGURAÇÃO DO APP ===
-st.set_page_config(layout="wide")
+st.set_page_config(page_title="Acompanhamento de Linhas de Cuidado", layout="wide")
 
-# === CABEÇALHO COM IMAGEM, TÍTULO E SUBTÍTULO ===
-st.image("logo_cuidadosmil.png", width=300)  # Ajuste o tamanho conforme necessário
-st.markdown("<h1 style='margin-bottom:0;'>Dashboard Programas e Linhas de Cuidado</h1>", unsafe_allow_html=True)
-st.markdown("<h3 style='margin-top:0;'>Diretoria de Gestão Clínica</h3>", unsafe_allow_html=True)
+# === CABEÇALHO COM TÍTULO À ESQUERDA E LOGO À DIREITA ===
+col1, col2 = st.columns([6, 1])  # Proporção ajustável
+
+with col1:
+    st.markdown("<h1 style='margin-bottom:0;'>📊 Dashboard Programas e Linhas de Cuidado</h1>", unsafe_allow_html=True)
+    st.markdown("<h3 style='margin-top:0;'>Diretoria de Gestão Clínica</h3>", unsafe_allow_html=True)
+
+with col2:
+    st.image("logo_cuidadosmil.png", width=160)  # Ajuste o tamanho conforme necessário
 
 # === CONEXÃO COM GOOGLE SHEETS ===
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
