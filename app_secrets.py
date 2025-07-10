@@ -56,30 +56,14 @@ tabas = st.tabs(["📈 Visão Geral", "📋 Monitoramento", "📘 Linhas", "💬
 # === ABA 1: VISÃO GERAL ===
 with tabas[0]:
     st.subheader("📈 Visão Geral em Gráficos")
-
     if not df_filtrado.empty:
-        # === Contadores Visuais ===
-        col1, col2, col3 = st.columns(3)
-        col1.metric("📊 Total de Tarefas", len(df_filtrado))
-        col2.metric("✅ Concluídas", len(df_filtrado[df_filtrado["Status"] == "Concluído"]))
-        col3.metric("⚠️ Pendentes", len(df_filtrado[df_filtrado["Status"] != "Concluído"]))
-
-        # === Gráficos ===
-        col4, col5 = st.columns(2)
-        with col4:
+        col1, col2 = st.columns(2)
+        with col1:
             fig_status = px.pie(df_filtrado, names="Status", title="Distribuição de Status")
             st.plotly_chart(fig_status, use_container_width=True)
-
-        with col5:
+        with col2:
             fig_quarter = px.bar(df_filtrado, x="Quarter", color="Status", barmode="group", title="Status por Quarter")
             st.plotly_chart(fig_quarter, use_container_width=True)
-
-        # === Tabela Resumo ===
-        st.markdown("### 📋 Resumo por Linha de Cuidado")
-        resumo = df_filtrado.groupby(["Linha", "Status"]).size().unstack(fill_value=0)
-        resumo["Total"] = resumo.sum(axis=1)
-        st.dataframe(resumo.reset_index(), use_container_width=True)
-
     else:
         st.info("Nenhuma tarefa encontrada para os filtros selecionados.")
 
@@ -172,39 +156,22 @@ with tabas[2]:
                         )
                         fig.update_layout(margin=dict(l=0, r=0, t=0, b=0))
                         st.plotly_chart(fig, use_container_width=False, key=f"grafico_{linha.replace(' ', '_')}")
-                    
+
 # === ABA 4: INSIGHTS ===
 with tabas[3]:
     st.subheader("💬 Insights Inteligentes")
-
-    if not df.empty:
+    try:
         total = len(df)
         concluidas = len(df[df["Status"] == "Concluído"])
         pendentes = df[df["Status"] != "Concluído"]
-
-        # === Métricas de topo ===
-        col1, col2, col3, col4 = st.columns(4)
-        col1.metric("📊 Total de Tarefas", total)
-        col2.metric("✅ Concluídas", concluidas, f"{(concluidas/total):.0%}")
-        col3.metric("⚠️ Em Aberto", len(pendentes))
-        linha_critica = pendentes["Linha"].value_counts().idxmax()
-        col4.metric("📍 Mais Pendências", linha_critica)
-
-        # === Gráfico de calor por linha e status ===
-        st.markdown("### 🔥 Mapa de Calor de Pendências")
-        heat_data = pd.crosstab(pendentes["Linha"], pendentes["Status"])
-        st.dataframe(heat_data, use_container_width=True)
-
-        # === Gráfico de barras com maiores linhas pendentes ===
-        st.markdown("### 📌 Linhas com Mais Pendências")
-        pendencias_por_linha = pendentes["Linha"].value_counts().reset_index()
-        pendencias_por_linha.columns = ["Linha", "Pendências"]
-        fig = px.bar(pendencias_por_linha, x="Linha", y="Pendências", title="Top Linhas com Pendências", text="Pendências")
-        fig.update_layout(xaxis_title="", yaxis_title="Qtd", xaxis_tickangle=-45)
-        st.plotly_chart(fig, use_container_width=True)
-
-    else:
-        st.info("Nenhum dado disponível para gerar insights.")
+        st.markdown(f"- Total de tarefas: **{total}**")
+        st.markdown(f"- Concluídas: **{concluidas}** ({concluidas/total:.0%})")
+        st.markdown(f"- Tarefas em aberto: **{len(pendentes)}**")
+        if not pendentes.empty:
+            linha_critica = pendentes["Linha"].value_counts().idxmax()
+            st.markdown(f"- Linha com mais pendências: **{linha_critica}**")
+    except:
+        st.warning("Erro ao gerar insights.")
 
 # === ABA 5: ADMINISTRAÇÃO ===
 with tabas[4]:
