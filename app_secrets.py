@@ -87,6 +87,8 @@ with tabas[1]:
 with tabas[2]:
     st.subheader("📘 Visualização por Linha de Cuidado")
 
+    busca_linha = st.text_input("🔍 Buscar por nome da linha")
+
     status_cores = {
         "Concluído": "🟢",
         "Em andamento": "🟡",
@@ -94,9 +96,12 @@ with tabas[2]:
         "Ação Contínua": "🔵"
     }
 
+    # Filtro inteligente por nome
+    linhas_filtradas = df[df["Linha"].str.contains(busca_linha, case=False, na=False)] if busca_linha else df
+
     quarters_ordenados = ["Q1", "Q2", "Q3", "Q4", "Sem Quarter"]
     for quarter in quarters_ordenados:
-        linhas_quarter = sorted(df[df["Quarter"] == quarter]["Linha"].unique())
+        linhas_quarter = sorted(linhas_filtradas[linhas_filtradas["Quarter"] == quarter]["Linha"].unique())
         if not linhas_quarter:
             continue
 
@@ -142,7 +147,6 @@ with tabas[2]:
                         colunas_exibir = ["Tarefa", "Status"]
                         st.dataframe(df_linha[colunas_exibir], use_container_width=True)
 
-                        # Mini gráfico de pizza por status da linha
                         fig = px.pie(
                             df_linha,
                             names="Status",
