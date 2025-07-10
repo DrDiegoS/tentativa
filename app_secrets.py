@@ -267,43 +267,6 @@ with tabas[4]:
         except Exception as e:
             st.error(f"Erro ao adicionar linha: {e}")
 
-# === ABA 6: OVERVIEW GERENCIAL ===
-with st.tabs(["📈 Visão Geral", "📋 Monitoramento", "📘 Linhas", "💬 Insights", "⚙️ Admin", "📊 Overview Gerencial"])[-1]:
-    st.subheader("📊 Painel de Overview Gerencial")
-
-    df_gerencial = df_filtrado.copy()  # usa os filtros da barra lateral
-
-    total_tarefas = len(df_gerencial)
-    concluidas = len(df_gerencial[df_gerencial["Status"] == "Concluído"])
-    andamento = len(df_gerencial[df_gerencial["Status"] == "Em andamento"])
-    nao_iniciado = len(df_gerencial[df_gerencial["Status"] == "Não iniciado"])
-    acao_continua = len(df_gerencial[df_gerencial["Status"] == "Ação Contínua"])
-    pendentes = total_tarefas - concluidas
-
-    if total_tarefas == 0:
-        st.warning("Nenhuma tarefa encontrada para os filtros aplicados.")
-    else:
-        # Bloco 1: Contadores
-        col1, col2, col3, col4, col5 = st.columns(5)
-        col1.metric("📋 Total de Tarefas", total_tarefas)
-        col2.metric("✅ Concluídas", concluidas)
-        col3.metric("🟡 Em andamento", andamento)
-        col4.metric("🔴 Não iniciado", nao_iniciado)
-        col5.metric("🔵 Ação Contínua", acao_continua)
-
-        st.markdown("---")
-
-        # Bloco 2: Gráfico de status por linha
-        st.markdown("### 📌 Status por Linha de Cuidado")
-        graf_dados = pd.crosstab(df_gerencial["Linha"], df_gerencial["Status"])
-        fig_bar = px.bar(graf_dados, barmode="stack", title="Distribuição de Status por Linha")
-        st.plotly_chart(fig_bar, use_container_width=True)
-
-        # Bloco 3: Tabela resumo
-        st.markdown("### 📑 Tabela Resumo")
-        resumo = df_gerencial.groupby(["Linha", "Status"]).size().unstack(fill_value=0)
-        resumo["Total"] = resumo.sum(axis=1)
-        st.dataframe(resumo.reset_index(), use_container_width=True)
 
 # === RODAPÉ ===
 st.markdown("---")
